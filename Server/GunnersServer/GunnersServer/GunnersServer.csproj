@@ -11,6 +11,9 @@
     <Reference Include="Do.Net">
       <HintPath>..\..\..\..\..\00.Server\DoNet\NetworkFramework\Do.Net\bin\Debug\net6.0\Do.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Donet">
+      <HintPath>Donet.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

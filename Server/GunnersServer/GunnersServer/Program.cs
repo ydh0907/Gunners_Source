@@ -1,7 +1,7 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using Do.Net;
+﻿using Do.Net;
 using GunnersServer.Packets;
+using System.Net;
+using System.Net.Sockets;
 
 namespace GunnersServer
 {
@@ -55,6 +55,16 @@ namespace GunnersServer
             if (listener.Listen(10))
                 listener.StartAccept(OnAccepted);
 
+            IPAddress[] addresses = Dns.GetHostAddresses(Dns.GetHostName());
+            foreach (IPAddress address in addresses)
+            {
+                if (address.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    Console.WriteLine($"Enter {address.ToString()} On Client");
+                    break;
+                }
+            }
+
             FlushLoop(10);
         }
 
@@ -65,9 +75,9 @@ namespace GunnersServer
             while (true)
             {
                 currentTime = Environment.TickCount;
-                if(currentTime - lastFlushTime > delay)
+                if (currentTime - lastFlushTime > delay)
                 {
-                    foreach(GameRoom room in rooms.Values) 
+                    foreach (GameRoom room in rooms.Values)
                     {
                         room.Flush();
                     }
@@ -85,13 +95,13 @@ namespace GunnersServer
 
         public static void EnterRoom(ClientSession user)
         {
-            if(matchingRoom.host == null)
+            if (matchingRoom.host == null)
             {
                 matchingRoom.host = user;
             }
             else
             {
-                if(matchingRoom.host.Active == 0)
+                if (matchingRoom.host.Active == 0)
                 {
                     matchingRoom = new(NextRoomID);
                     matchingRoom.host = user;

@@ -1,17 +1,16 @@
 using Do.Net;
-using System.Net;
 using GunnersServer.Packets;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
-using Unity.VisualScripting;
 
 public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager Instance = null;
 
     public Connector connector = null;
-    public ServerSession session = new();
+    public ServerSession session = null;
 
     public Queue<Packet> packetQueue = new();
     public JobQueue JobQueue = new();
@@ -33,9 +32,11 @@ public class NetworkManager : MonoBehaviour
         session.Close();
     }
 
-    public void Connect()
+    public void Connect(string ip)
     {
-        IPEndPoint endPoint = new(IPAddress.Parse("172.31.3.212"), 9070);
+        IPEndPoint endPoint = new(IPAddress.Parse(ip), 9070);
+
+        session = new();
         connector = new Connector(endPoint, session);
         connector.StartConnect(endPoint);
 
@@ -49,11 +50,18 @@ public class NetworkManager : MonoBehaviour
 
     private IEnumerator connecting()
     {
-        yield return new WaitUntil(() => session.Active != 0);
+        float timer = 0;
+        while (session.Active == 0)
+        {
+            timer += Time.deltaTime;
+            if (timer >= 3)
+                yield break;
+            yield return null;
+        }
 
         session.nickname = GameObject.Find("Name").GetComponent<TMPro.TMP_InputField>().text;
-        
-        if(session.nickname.Length > 16) session.nickname = session.nickname.Substring(0, 16);
+
+        if (session.nickname.Length > 16) session.nickname = session.nickname.Substring(0, 16);
 
         session.nickname = session.nickname.Replace("<size=", "");
 
@@ -75,7 +83,7 @@ public class NetworkManager : MonoBehaviour
 
         while (session.Active == 1)
         {
-            while(packetQueue.Count > 0)
+            while (packetQueue.Count > 0)
             {
                 session.Send(packetQueue.Dequeue().Serialize());
             }
@@ -93,7 +101,7 @@ public class StringUtiles
 
         string temp;
 
-        for(int i = 0; i < str.Length - target.Length + 1; ++i)
+        for (int i = 0; i < str.Length - target.Length + 1; ++i)
         {
             temp = str.Substring(i, target.Length);
             if (temp == target)
